@@ -12621,7 +12621,35 @@ body {
 }
 
 .page-section {
-  padding: 8rem 0;
+    padding: 8rem 0; 
+}
+
+/* 2. Style the custom HR divider line */
+.divider {
+    /* Uses the primary color defined in your :root variables (var(--bs-primary) is likely #f4623a) */
+    background-color: var(--bs-primary); 
+    /* Ensures the color is fully opaque */
+    opacity: 1;
+    /* Sets the thickness */
+    height: 0.2rem;
+    /* Sets the fixed width for a centered accent line */
+    max-width: 3.25rem;
+    /* Centers the element */
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    margin-left: auto;
+    margin-right: auto;
+    border: none;
+}
+
+/* 3. Optional: Add a subtle hover effect to service boxes for interactivity */
+.page-section .text-center .mt-5 {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.page-section .text-center .mt-5:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
 }
 
 .text-white-75 {

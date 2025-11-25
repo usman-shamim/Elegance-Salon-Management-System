@@ -24,7 +24,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Simple Validation
     if (empty($name) || empty($phone)) {
-        $message = '<p class="error-message">Client Name and Phone are required fields.</p>';
+        // Updated error message markup
+        $message = '<div class="alert alert-danger" role="alert">Client Name and Phone are required fields.</div>';
     } else {
         if ($client_id) {
             // UPDATE Operation (Edit Client)
@@ -33,9 +34,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // 'sssi' means String, String, String, Integer
             $stmt->bind_param("ssssi", $name, $phone, $email, $preferences, $client_id);
             if ($stmt->execute()) {
-                $message = '<p class="success-message">Client updated successfully.</p>';
+                $message = '<div class="alert alert-success" role="alert">Client updated successfully.</div>';
             } else {
-                $message = '<p class="error-message">Error updating client: ' . $conn->error . '</p>';
+                $message = '<div class="alert alert-danger" role="alert">Error updating client: ' . $conn->error . '</div>';
             }
         } else {
             // INSERT Operation (Add New Client)
@@ -44,13 +45,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // 'ssss' means String, String, String, String
             $stmt->bind_param("ssss", $name, $phone, $email, $preferences);
             if ($stmt->execute()) {
-                $message = '<p class="success-message">New client added successfully.</p>';
+                $message = '<div class="alert alert-success" role="alert">New client added successfully.</div>';
             } else {
                 // Check for duplicate key error (e.g., duplicate phone/email)
                 if ($conn->errno == 1062) {
-                    $message = '<p class="error-message">Error adding client: Phone or Email may already exist.</p>';
+                    $message = '<div class="alert alert-warning" role="alert">Error adding client: Phone or Email may already exist.</div>';
                 } else {
-                    $message = '<p class="error-message">Error adding client: ' . $conn->error . '</p>';
+                    $message = '<div class="alert alert-danger" role="alert">Error adding client: ' . $conn->error . '</div>';
                 }
             }
         }
@@ -70,12 +71,29 @@ if (isset($_GET['edit_id']) && is_numeric($_GET['edit_id'])) {
     if ($result->num_rows === 1) {
         $client_to_edit = $result->fetch_assoc();
     } else {
-        $message = '<p class="error-message">Client not found.</p>';
+        $message = '<div class="alert alert-danger" role="alert">Client not found.</div>';
     }
     $stmt->close();
 }
 
-// --- III. Fetch All Clients for List View ---
+// --- III. Handle Redirect Status Message (from client_delete.php) ---
+if (isset($_GET['status'])) {
+    $status_message = htmlspecialchars(urldecode($_GET['status']));
+    
+    // Determine the alert type based on the message content
+    $alert_class = 'alert-info';
+    if (strpos($status_message, 'successfully') !== false) {
+        $alert_class = 'alert-success';
+    } elseif (strpos($status_message, 'Cannot delete client') !== false || strpos($status_message, 'error') !== false) {
+        $alert_class = 'alert-danger';
+    } elseif (strpos($status_message, 'not found') !== false) {
+        $alert_class = 'alert-warning';
+    }
+    
+    $message .= '<div class="alert ' . $alert_class . '" role="alert">' . $status_message . '</div>';
+}
+
+// --- IV. Fetch All Clients for List View ---
 $clients = [];
 $sql = "SELECT * FROM clients ORDER BY name ASC";
 $result = $conn->query($sql);
@@ -84,84 +102,103 @@ if ($result) {
         $clients[] = $row;
     }
 } else {
-    $message = '<p class="error-message">Error fetching clients: ' . $conn->error . '</p>';
+    $message = '<div class="alert alert-danger" role="alert">Error fetching clients: ' . $conn->error . '</div>';
 }
 
-include '../templates/header.php'; // Start HTML output
+include '../template/header.php'; // Start HTML output
 ?>
 
-<h2>Client Management (<?php echo $client_to_edit ? 'Edit' : 'Add New'; ?> Client)</h2>
+<h1 class="mb-4">Client Management</h1>
 
 <?php echo $message; ?>
 
-<form method="POST" action="clients_manage.php">
-    <input type="hidden" name="client_id" value="<?php echo htmlspecialchars($client_to_edit['client_id'] ?? ''); ?>">
-    
-    <div class="form-group">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($client_to_edit['name'] ?? ''); ?>" required>
+<div class="card shadow-sm mb-5">
+    <div class="card-header bg-primary text-white">
+        <h2 class="h5 mb-0"><?php echo $client_to_edit ? 'Edit Client: ' . htmlspecialchars($client_to_edit['name']) : 'Add New Client'; ?></h2>
     </div>
-    
-    <div class="form-group">
-        <label for="phone">Phone:</label>
-        <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($client_to_edit['phone'] ?? ''); ?>" required>
-    </div>
+    <div class="card-body">
+        <form method="POST" action="clients_manage.php">
+            <input type="hidden" name="client_id" value="<?php echo htmlspecialchars($client_to_edit['client_id'] ?? ''); ?>">
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <input type="text" id="name" name="name" class="form-control" value="<?php echo htmlspecialchars($client_to_edit['name'] ?? ''); ?>" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="phone" class="form-label">Phone:</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" value="<?php echo htmlspecialchars($client_to_edit['phone'] ?? ''); ?>" required>
+                </div>
 
-    <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($client_to_edit['email'] ?? ''); ?>">
+                <div class="col-md-12 mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <input type="email" id="email" name="email" class="form-control" value="<?php echo htmlspecialchars($client_to_edit['email'] ?? ''); ?>">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="preferences" class="form-label">Preferences / Notes:</label>
+                <textarea id="preferences" name="preferences" class="form-control" rows="3"><?php echo htmlspecialchars($client_to_edit['preferences'] ?? ''); ?></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-success me-2">
+                <i class="bi-check-circle me-1"></i> <?php echo $client_to_edit ? 'Update Client' : 'Add Client'; ?>
+            </button>
+            <?php if ($client_to_edit): ?>
+                <a href="clients_manage.php" class="btn btn-danger">
+                    <i class="bi-x-circle me-1"></i> Cancel Edit
+                </a>
+            <?php endif; ?>
+        </form>
     </div>
-    
-    <div class="form-group">
-        <label for="preferences">Preferences / Notes:</label>
-        <textarea id="preferences" name="preferences"><?php echo htmlspecialchars($client_to_edit['preferences'] ?? ''); ?></textarea>
-    </div>
-    
-    <button type="submit" class="btn"><?php echo $client_to_edit ? 'Update Client' : 'Add Client'; ?></button>
-    <?php if ($client_to_edit): ?>
-        <a href="clients_manage.php" class="btn btn-danger">Cancel Edit</a>
-    <?php endif; ?>
-</form>
+</div>
 
-<hr>
-
-<h2>Client List</h2>
+<h2 class="mt-5 mb-3">Registered Client List</h2>
 
 <?php if (empty($clients)): ?>
-    <p>No clients found in the database.</p>
+    <div class="alert alert-info">
+        <i class="bi-info-circle me-1"></i> No clients found in the database.
+    </div>
 <?php else: ?>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Preferences</th>
-                <th>Member Since</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($clients as $client): ?>
-            <tr>
-                <td><?php echo htmlspecialchars($client['client_id']); ?></td>
-                <td><?php echo htmlspecialchars($client['name']); ?></td>
-                <td><?php echo htmlspecialchars($client['phone']); ?></td>
-                <td><?php echo htmlspecialchars($client['email']); ?></td>
-                <td><?php echo htmlspecialchars(substr($client['preferences'], 0, 50)) . ''; ?></td>
-                <td><?php echo date('Y-m-d', strtotime($client['created_at'])); ?></td>
-                <td>
-                    <a href="clients_manage.php?edit_id=<?php echo $client['client_id']; ?>" class="btn btn-sm btn-primary">Edit</a>
-                    <a href="client_delete.php?id=<?php echo $client['client_id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete <?php echo addslashes($client['name']); ?>? This cannot be undone.');">Delete</a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+    <div class="table-responsive shadow-sm">
+        <table class="table table-hover table-striped border">
+            <thead class="bg-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Preferences</th>
+                    <th>Member Since</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($clients as $client): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($client['client_id']); ?></td>
+                    <td><?php echo htmlspecialchars($client['name']); ?></td>
+                    <td><?php echo htmlspecialchars($client['phone']); ?></td>
+                    <td><?php echo htmlspecialchars($client['email']); ?></td>
+                    <td><?php echo htmlspecialchars(substr($client['preferences'], 0, 50)) . (strlen($client['preferences']) > 50 ? '...' : ''); ?></td>
+                    <td><?php echo date('Y-m-d', strtotime($client['created_at'])); ?></td>
+                    <td class="text-nowrap">
+                        <a href="clients_manage.php?edit_id=<?php echo $client['client_id']; ?>" class="btn btn-sm btn-primary">
+                            <i class="bi-pencil"></i> Edit
+                        </a>
+                        <a href="client_delete.php?id=<?php echo $client['client_id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete <?php echo addslashes($client['name']); ?>? This cannot be undone and will fail if they have appointments.');">
+                            <i class="bi-trash"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 <?php endif; ?>
 
 <?php 
 $conn->close();
-include '../templates/footer.php'; // End HTML output
+include '../template/footer.php'; // End HTML output
 ?>

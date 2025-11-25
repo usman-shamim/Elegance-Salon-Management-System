@@ -1,17 +1,37 @@
 <?php
-// templates/footer.php
-// Closes the main content div, container div, and body tags.
+// template/footer.php
 
-// REMOVED: if (isset($conn) && $conn instanceof mysqli && $conn->ping()) { $conn->close(); }
+// 1. Setup variables
+// Base path is required for scripts. Assumes this file is in 'template/'.
+$base_path = '../'; 
+// Retrieve session role safely for the footer display
+$user_role = $_SESSION['role'] ?? 'Guest';
 
-// This is still good practice to ensure the connection is closed, but we'll do it
-// in the main script now. 
-// If your script has a logic path that redirects or exits early, it might not be closed.
+// NOTE: If your main script did not close the connection ($conn) 
+// before including this footer, you should close it here:
+/*
+if (isset($conn) && $conn instanceof mysqli) {
+    $conn->close();
+}
+*/
 ?>
-        </div> <hr class="mt-4">
-        <footer class="text-center text-muted">
-            <p>&copy; <?php echo date("Y"); ?> Salon Management System | Logged in as: <?php echo htmlspecialchars($_SESSION['role'] ?? 'Guest'); ?></p>
-        </footer>
-    </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-</body>
+
+            </div> </div> </section> <footer class="bg-light py-5">
+        <div class="container px-4 px-lg-5">
+            <div class="small text-center text-muted">
+                Copyright &copy; <?php echo date("Y"); ?> - Elegance Salon Management 
+                <?php if ($user_role !== 'Guest'): ?>
+                    | Logged in as: <?php echo htmlspecialchars(ucfirst($user_role)); ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/SimpleLightbox/2.1.0/simpleLightbox.min.js"></script>
+    
+    <script src="<?php echo $base_path; ?>assets/js/scripts.js"></script>
+    
+    </body>
 </html>

@@ -1,14 +1,25 @@
 <?php
 $page_title = "Book an Appointment";
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Remove error display settings for a public-facing page in a production environment
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
+
 require_once 'config/functions.php';
 require_once 'db_connect.php';
 
 // Check if a booking was attempted and process it
 $message = '';
+
+// Variables to retain form data on failure
+$client_name_val = $_POST['client_name'] ?? '';
+$client_phone_val = $_POST['client_phone'] ?? '';
+$client_email_val = $_POST['client_email'] ?? '';
+$service_id_val = $_POST['service_id'] ?? '';
+$staff_id_val = $_POST['staff_id'] ?? '';
+$app_date_val = $_POST['app_date'] ?? date('Y-m-d'); // Default to today
+$app_time_val = $_POST['app_time'] ?? '';
 
 // --- Handle New Client Creation & Booking Submission ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['client_name']) && isset($_POST['service_id'])) {
@@ -25,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['client_name']) && isse
 
     // Basic validation
     if (empty($client_name) || empty($service_id) || empty($staff_id) || empty($app_date) || empty($app_time)) {
-        $message = '<p class="error-message">Please fill out all required fields.</p>';
+        $message = '<div class="alert alert-danger" role="alert"><i class="bi-exclamation-triangle-fill me-2"></i> Please fill out all required fields.</div>';
         goto end_booking_logic; // Skip to fetching data if validation fails
     }
 
@@ -41,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['client_name']) && isse
 
     if ($result_find->num_rows > 0) {
         $client_id = $result_find->fetch_assoc()['client_id'];
-        $message .= '<p class="info-message">Welcome back, ' . htmlspecialchars($client_name) . '! Using existing client record.</p>';
+        $message .= '<div class="alert alert-info alert-sm" role="alert"><i class="bi-person-check-fill me-1"></i> Welcome back, ' . htmlspecialchars($client_name) . '! Using existing client record.</div>';
     } else {
         // Create new client if not found
         $sql_insert_client = "INSERT INTO clients (name, phone, email) VALUES (?, ?, ?)";
@@ -50,9 +61,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['client_name']) && isse
         
         if ($stmt_insert->execute()) {
             $client_id = $stmt_insert->insert_id;
-            $message .= '<p class="success-message">New client record created for ' . htmlspecialchars($client_name) . '.</p>';
+            $message .= '<div class="alert alert-success alert-sm" role="alert"><i class="bi-person-plus-fill me-1"></i> New client record created for ' . htmlspecialchars($client_name) . '.</div>';
         } else {
-            $message = '<p class="error-message">Error creating client record: ' . $conn->error . '</p>';
+            $message = '<div class="alert alert-danger" role="alert"><i class="bi-x-octagon-fill me-2"></i> Error creating client record: ' . $conn->error . '</div>';
             goto end_booking_logic; // Stop if client creation fails
         }
         $stmt_insert->close();
@@ -83,9 +94,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['client_name']) && isse
             WHERE staff_id = ?
             AND status != 'Cancelled'
             AND (
-                (start_time < ? AND end_time > ?) OR  
-                (start_time < ? AND end_time > ?) OR  
-                (start_time = ?)                     
+                (start_time < ? AND end_time > ?) OR 
+                (start_time < ? AND end_time > ?) OR 
+                (start_time = ?) 
             )
         ";
         $stmt_conflict = $conn->prepare($sql_conflict);
@@ -102,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['client_name']) && isse
         $conflict_result = $stmt_conflict->get_result();
 
         if ($conflict_result->num_rows > 0) {
-            $message = '<p class="error-message">CONFLICT: The selected stylist is already booked during this time slot. Please choose another time or stylist.</p>';
+            $message = '<div class="alert alert-warning" role="alert"><i class="bi-clock-history me-2"></i> CONFLICT: The selected stylist is already booked during this time slot. Please choose another time or stylist.</div>';
             $stmt_conflict->close();
         } else {
             // 4. Insert Appointment
@@ -113,9 +124,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['client_name']) && isse
             $stmt_insert->bind_param("iiiss", $client_id, $service_id, $staff_id, $start_datetime_str, $end_datetime_str);
 
             if ($stmt_insert->execute()) {
-                $message = '<p class="success-message">🎉 Appointment successfully booked! You will receive a confirmation shortly.</p>';
+                // Success message with dismiss button
+                $message = '<div class="alert alert-success alert-dismissible fade show" role="alert"><i class="bi-calendar-check me-2"></i> 🎉 Appointment successfully booked! You will receive a confirmation shortly.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+                
+                // Clear form persistence values on successful booking
+                $client_name_val = $client_phone_val = $client_email_val = $service_id_val = $staff_id_val = $app_time_val = '';
+                $app_date_val = date('Y-m-d');
             } else {
-                $message = '<p class="error-message">Database Error during booking: ' . $conn->error . '</p>';
+                $message = '<div class="alert alert-danger" role="alert"><i class="bi-x-octagon-fill me-2"></i> Database Error during booking: ' . $conn->error . '</div>';
             }
             $stmt_insert->close();
         }
@@ -135,78 +152,93 @@ $staff = $conn->query($sql_staff)->fetch_all(MYSQLI_ASSOC);
 
 
 include 'template/header.php';
-echo $message;
 ?>
 
 <div class="container my-5">
-    <h1 class="text-center mb-4">Book Your Appointment</h1>
-    <p class="text-center lead">Welcome! Select your service and preferred stylist below to check availability.</p>
+    <h1 class="text-center mb-2 text-primary">Book Your Appointment</h1>
+    <p class="text-center lead mb-4 text-muted">Select your service, preferred stylist, and time slot to secure your booking.</p>
 
-    <div class="card shadow-lg p-4 mx-auto" style="max-width: 600px;">
-        <form method="POST" action="public_booking.php" id="bookingForm">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
             
-            <h4 class="mb-3">1. Your Details</h4>
-            
-            <div class="form-group mb-3">
-                <label for="client_name">Full Name <span class="text-danger">*</span></label>
-                <input type="text" id="client_name" name="client_name" class="form-control" required placeholder="John Doe">
-            </div>
+            <?php echo $message; ?>
 
-            <div class="form-group mb-3">
-                <label for="client_phone">Phone (Used for lookup/confirmation) <span class="text-danger">*</span></label>
-                <input type="tel" id="client_phone" name="client_phone" class="form-control" required placeholder="555-123-4567">
-            </div>
-            
-            <div class="form-group mb-4">
-                <label for="client_email">Email (Optional)</label>
-                <input type="email" id="client_email" name="client_email" class="form-control" placeholder="john@example.com">
-            </div>
-            
-            <hr>
-            <h4 class="mb-3">2. Service & Stylist</h4>
+            <div class="card shadow-lg p-4 border-0">
+                <form method="POST" action="public_booking.php" id="bookingForm">
+                    
+                    <h4 class="mb-4 text-dark"><i class="bi-person-circle me-2"></i> 1. Your Contact Details</h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="client_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" id="client_name" name="client_name" class="form-control" value="<?php echo htmlspecialchars($client_name_val); ?>" required placeholder="John Doe">
+                        </div>
 
-            <div class="form-group mb-3">
-                <label for="service_id">Service <span class="text-danger">*</span></label>
-                <select id="service_id" name="service_id" class="form-control" required>
-                    <option value="">-- Select Service --</option>
-                    <?php foreach ($services as $s): ?>
-                        <option 
-                            value="<?php echo $s['service_id']; ?>" 
-                            data-duration="<?php echo $s['duration_minutes']; ?>"
-                        >
-                            <?php echo htmlspecialchars($s['name']) . " ($" . number_format($s['price'], 2) . " - " . $s['duration_minutes'] . " min)"; ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="client_phone" class="form-label">Phone <span class="text-danger">*</span></label>
+                            <input type="tel" id="client_phone" name="client_phone" class="form-control" value="<?php echo htmlspecialchars($client_phone_val); ?>" required placeholder="555-123-4567">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="client_email" class="form-label">Email (Optional)</label>
+                        <input type="email" id="client_email" name="client_email" class="form-control" value="<?php echo htmlspecialchars($client_email_val); ?>" placeholder="john@example.com">
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h4 class="mb-4 text-dark"><i class="bi-scissors me-2"></i> 2. Service & Stylist</h4>
 
-            <div class="form-group mb-4">
-                <label for="staff_id">Preferred Stylist <span class="text-danger">*</span></label>
-                <select id="staff_id" name="staff_id" class="form-control" required>
-                    <option value="">-- Select Stylist --</option>
-                    <?php foreach ($staff as $st): ?>
-                        <option value="<?php echo $st['staff_id']; ?>"><?php echo htmlspecialchars($st['username']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            
-            <hr>
-            <h4 class="mb-3">3. Date & Time</h4>
+                    <div class="mb-3">
+                        <label for="service_id" class="form-label">Service <span class="text-danger">*</span></label>
+                        <select id="service_id" name="service_id" class="form-select" required>
+                            <option value="">-- Select Service --</option>
+                            <?php foreach ($services as $s): ?>
+                                <option 
+                                    value="<?php echo $s['service_id']; ?>" 
+                                    data-duration="<?php echo $s['duration_minutes']; ?>"
+                                    <?php echo ($service_id_val == $s['service_id']) ? 'selected' : ''; ?>
+                                >
+                                    <?php echo htmlspecialchars($s['name']) . " ($" . number_format($s['price'], 2) . " - " . $s['duration_minutes'] . " min)"; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-            <div class="row">
-                <div class="col-md-6 form-group mb-3">
-                    <label for="app_date">Date <span class="text-danger">*</span></label>
-                    <input type="date" id="app_date" name="app_date" class="form-control" required min="<?php echo date('Y-m-d'); ?>">
-                </div>
-                <div class="col-md-6 form-group mb-4">
-                    <label for="app_time">Time (HH:MM) <span class="text-danger">*</span></label>
-                    <!-- Step="1800" enforces 30-minute intervals -->
-                    <input type="time" id="app_time" name="app_time" class="form-control" required step="1800">
-                </div>
+                    <div class="mb-4">
+                        <label for="staff_id" class="form-label">Preferred Stylist <span class="text-danger">*</span></label>
+                        <select id="staff_id" name="staff_id" class="form-select" required>
+                            <option value="">-- Select Stylist --</option>
+                            <?php foreach ($staff as $st): ?>
+                                <option 
+                                    value="<?php echo $st['staff_id']; ?>"
+                                    <?php echo ($staff_id_val == $st['staff_id']) ? 'selected' : ''; ?>
+                                >
+                                    <?php echo htmlspecialchars($st['username']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h4 class="mb-4 text-dark"><i class="bi-calendar-check me-2"></i> 3. Date & Time</h4>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="app_date" class="form-label">Date <span class="text-danger">*</span></label>
+                            <input type="date" id="app_date" name="app_date" class="form-control" value="<?php echo htmlspecialchars($app_date_val); ?>" required min="<?php echo date('Y-m-d'); ?>">
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="app_time" class="form-label">Time (HH:MM) <span class="text-danger">*</span></label>
+                            <input type="time" id="app_time" name="app_time" class="form-control" value="<?php echo htmlspecialchars($app_time_val); ?>" required step="1800">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">
+                        <i class="bi-check-circle me-2"></i> Confirm and Book Appointment
+                    </button>
+                </form>
             </div>
-            
-            <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">Confirm and Book</button>
-        </form>
+        </div>
     </div>
 </div>
 

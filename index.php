@@ -105,12 +105,14 @@ $asset_path = 'assets/';
                     <div class="row gx-4 gx-lg-5">
                         <?php foreach ($services as $service): ?>
                             <div class="col-lg-3 col-md-6 text-center">
-                                <div class="mt-5">
-                                    <div class="mb-2"><i class="bi-scissors fs-1 text-primary"></i></div> 
+                                <div class="mt-5 p-3"> 
+                                    <div class="mb-2">
+                                        <i class="bi-scissors fs-1 text-primary"></i>
+                                    </div> 
                                     <h3 class="h4 mb-2"><?php echo htmlspecialchars($service['name']); ?></h3>
                                     <p class="text-muted mb-1"><?php echo htmlspecialchars($service['description']); ?></p>
                                     <p class="text-dark mb-0">
-                                        **$<?php echo number_format($service['price'], 2); ?>** | <?php echo $service['duration_minutes']; ?> min
+                                        $<?php echo number_format($service['price'], 2); ?> | <?php echo $service['duration_minutes']; ?> min
                                     </p>
                                     <a href="public_booking.php" class="btn btn-sm btn-outline-primary mt-2">Book</a>
                                 </div>
@@ -124,7 +126,7 @@ $asset_path = 'assets/';
         <div class="container-fluid p-0">
             <div class="row g-0">
                 <div class="col-lg-4 col-sm-6">
-                    <a class="portfolio-box" href="assets/img/portfolio/fullsize/1.jpg" title="Project Name">
+                    <a class="portfolio-box" href="assets/img/1.jpg" title="Project Name">
                         <img class="img-fluid" src="assets/img/1.jpg" alt="Classic Haircut" />
                         <div class="portfolio-box-caption">
                             <div class="project-category text-white-50">Hair Styling</div>
@@ -133,7 +135,7 @@ $asset_path = 'assets/';
                     </a>
                 </div>
                 <div class="col-lg-4 col-sm-6">
-                    <a class="portfolio-box" href="assets/img/portfolio/fullsize/2.jpg" title="Project Name">
+                    <a class="portfolio-box" href="assets/img/2.jpg" title="Project Name">
                         <img class="img-fluid" src="assets/img/2.jpg" alt="Party Makeup Look" />
                         <div class="portfolio-box-caption">
                             <div class="project-category text-white-50">Beauty</div>
@@ -142,7 +144,7 @@ $asset_path = 'assets/';
                     </a>
                 </div>
                 <div class="col-lg-4 col-sm-6">
-                    <a class="portfolio-box" href="assets/img/portfolio/fullsize/3.jpg" title="Project Name">
+                    <a class="portfolio-box" href="assets/img/3.jpg" title="Project Name">
                         <img class="img-fluid" src="assets/img/3.jpg" alt="Beard Trim and Shape" />
                         <div class="portfolio-box-caption">
                             <div class="project-category text-white-50">Men’s Care</div>
@@ -151,7 +153,7 @@ $asset_path = 'assets/';
                     </a>
                 </div>
                 <div class="col-lg-4 col-sm-6">
-                    <a class="portfolio-box" href="assets/img/portfolio/fullsize/4.jpg" title="Project Name">
+                    <a class="portfolio-box" href="assets/img/4.jpg" title="Project Name">
                         <img class="img-fluid" src="assets/img/4.jpg" alt="Deep Clean Facial" />
                         <div class="portfolio-box-caption">
                             <div class="project-category text-white-50">Skin Care</div>
@@ -160,7 +162,7 @@ $asset_path = 'assets/';
                     </a>
                 </div>
                 <div class="col-lg-4 col-sm-6">
-                    <a class="portfolio-box" href="assets/img/portfolio/fullsize/5.jpg" title="Project Name">
+                    <a class="portfolio-box" href="assets/img/5.jpg" title="Project Name">
                         <img class="img-fluid" src="assets/img/5.jpg" alt="Clean and Polish" />
                         <div class="portfolio-box-caption">
                             <div class="project-category text-white-50">Hands Care</div>
@@ -169,7 +171,7 @@ $asset_path = 'assets/';
                     </a>
                 </div>
                 <div class="col-lg-4 col-sm-6">
-                    <a class="portfolio-box" href="assets/img/portfolio/fullsize/6.jpg" title="Project Name">
+                    <a class="portfolio-box" href="assets/img/6.jpg" title="Project Name">
                         <img class="img-fluid" src="assets/img/6.jpg" alt="Modern Hair Color" />
                         <div class="portfolio-box-caption p-3">
                             <div class="project-category text-white-50">Styling</div>
