@@ -48,8 +48,10 @@ $user_role = $_SESSION['role'] ?? null;
     <link href="https://fonts.googleapis.com/css?family=Merriweather+Sans:400,700" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Merriweather:400,300,300italic,400italic,700,700italic" rel="stylesheet" type="text/css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/SimpleLightbox/2.1.0/simpleLightbox.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     
-    <link href="<?php echo $base_path; ?>css/styles.css" rel="stylesheet" /> 
+    <link href="<?php echo $base_url; ?>css/styles.css" rel="stylesheet" />
+    <link rel="icon" type="image/x-icon" href="<?php echo $base_url; ?>assets/favicon.ico" />
     
     <style>
         /* Override default Creative theme body padding/margins for admin pages */
@@ -78,7 +80,7 @@ $user_role = $_SESSION['role'] ?? null;
 <body id="page-top">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top py-3" id="mainNav">
         <div class="container px-4 px-lg-5">
-            <a class="navbar-brand text-light" href="<?php echo $base_path; ?>dashboard.php">Elegance Staff Portal</a>
+            <a class="navbar-brand text-light" href="<?php echo $base_path; ?>index.php">Elegance Salon</a>
             
             <div class="d-flex align-items-center order-lg-3">
                 <?php if (isset($_SESSION['user_id'])): ?>

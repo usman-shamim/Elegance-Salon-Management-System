@@ -1,5 +1,8 @@
 <?php
 $page_title = "My Schedule";
+// Define the base path for assets relative to the root (where index.php is)
+$base_url = '../'; // Go up one level from the 'stylist' folder
+
 require_once '../config/functions.php';
 require_once '../db_connect.php';
 
@@ -65,7 +68,7 @@ echo $message;
 ?>
 
 <h1 class="mb-4">My Schedule</h1>
-<p class="lead text-muted">Welcome, **<?php echo htmlspecialchars($_SESSION['username']); ?>**! Below are your appointments starting today.</p>
+<p class="lead text-muted">Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>! Below are your appointments starting today.</p>
 
 <?php if ($stylist_staff_id === null): ?>
     <div class="alert alert-danger" role="alert">
@@ -166,7 +169,7 @@ echo $message;
 </div>
 
 <script>
-/**
+/* 
  * JavaScript to populate the Bootstrap Modal with appointment data 
  * when the 'Details' button is clicked.
  */

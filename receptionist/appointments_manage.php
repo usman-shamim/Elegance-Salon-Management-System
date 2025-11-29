@@ -10,7 +10,7 @@ if (!empty($message)) {
     $alert_type = (strpos($message, 'success-message') !== false) ? 'alert-success' : 'alert-danger';
     
     // Clean up the inner message text for the alert box
-    $clean_message = str_replace(['<p class="success-message">', '<p class="error-message">', '</p>', '**', '***'], '', $message);
+    $clean_message = str_replace(['<p class="success-message">', '<p class="error-message">', '</p>', '', '*'], '', $message);
     
     echo '<div class="alert ' . $alert_type . '" role="alert">' . $clean_message . '</div>';
 }
