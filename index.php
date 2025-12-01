@@ -56,8 +56,8 @@ $asset_path = 'assets/';
                         <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
                         <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
                         <li class="nav-item"><a class="nav-link" href="#portfolio">Gallery</a></li>
-                        <li class="nav-item"><a class="nav-link btn btn-outline-primary" href="public_booking.php">Book Now</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                        <li class="nav-item"><a class="nav-link btn" href="public_booking.php">Book Now</a></li>
+                        <li class="nav-item"><a class="nav-link" href="developer_contact.php">Contact Us</a></li>
                         <?php if (!isset($_SESSION['user_id'])): ?>
                             <li class="nav-item"><a class="nav-link" href="login.php">Staff Login</a></li>
                         <?php else: ?>
